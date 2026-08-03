@@ -26,7 +26,7 @@ export async function loader({ request }) {
   }
 
   const updatedStatus = await getStoreStatus(session.shop);
-    let dashboardLink = 'https://localhost:3000';
+    let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
 
   if (updatedStatus.linked) {
     dashboardLink = await getDashboardLink(session.shop);
