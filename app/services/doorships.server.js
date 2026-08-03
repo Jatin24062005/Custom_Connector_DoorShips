@@ -102,3 +102,17 @@ export async function updateShopifyOrder(shop, payload) {
   return response.data;
 }
 
+export async function uninstallStore(shop) {
+  const response = await api.post("/shopify/webhooks/uninstall", {
+      shop
+    });
+
+  if (!response.data) {
+    throw new Error("Failed to sync order");
+  }
+
+  return response.data;
+}
+
+
+
