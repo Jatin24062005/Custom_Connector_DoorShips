@@ -13,29 +13,33 @@ import {
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  // Register store if not already present
-  await installStore(session.shop, session.accessToken);
+  let status = { linked: false };
+  let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
 
-  const status = await getStoreStatus(session.shop);
+  try {
+    status = await getStoreStatus(session.shop);
 
-  if (!status.linked && session.onlineAccessInfo?.associated_user?.email) {
-    await linkStore(
-      session.shop,
-      session.onlineAccessInfo.associated_user.email,
-    );
+    if (!status.linked && session.onlineAccessInfo?.associated_user?.email) {
+      await linkStore(
+        session.shop,
+        session.onlineAccessInfo.associated_user.email,
+      );
+      status = await getStoreStatus(session.shop);
+    }
+
+    if (status.linked) {
+      dashboardLink = await getDashboardLink(session.shop);
+    }
+  } catch (err) {
+    console.error("DoorShips backend call failed in app._index loader:", err);
+    // fall through with status.linked = false — page still renders
   }
 
-  const updatedStatus = await getStoreStatus(session.shop);
-    let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
-
-  if (updatedStatus.linked) {
-    dashboardLink = await getDashboardLink(session.shop);
-  }
   return {
     shop: session.shop,
-    status: updatedStatus,
+    status,
     email: session.onlineAccessInfo?.associated_user?.email,
-    url:dashboardLink
+    url: dashboardLink,
   };
 }
 
