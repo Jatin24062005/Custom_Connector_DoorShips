@@ -13,29 +13,38 @@ import {
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  // Register store if not already present
-  await installStore(session.shop, session.accessToken);
+  let status = { linked: false };
+  let email = session.onlineAccessInfo?.associated_user?.email ?? null;
+  let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
 
-  const status = await getStoreStatus(session.shop);
-
-  if (!status.linked && session.onlineAccessInfo?.associated_user?.email) {
-    await linkStore(
-      session.shop,
-      session.onlineAccessInfo.associated_user.email,
-    );
+  try {
+    // Fire-and-forget registration; never throw to the loader
+    await installStore(session.shop, session.accessToken);
+  } catch (e) {
+    console.error("installStore failed", e);
   }
 
-  const updatedStatus = await getStoreStatus(session.shop);
-    let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
+  try {
+    status = await getStoreStatus(session.shop);
 
-  if (updatedStatus.linked) {
-    dashboardLink = await getDashboardLink(session.shop);
+    if (!status.linked && email) {
+      await linkStore(session.shop, email);
+      status = await getStoreStatus(session.shop);
+    }
+
+    if (status.linked) {
+      dashboardLink = await getDashboardLink(session.shop);
+    }
+  } catch (e) {
+    console.error("status/linkStore/getDashboardLink failed", e);
+    // fall back to unlinked state, but still render the page
   }
+
   return {
     shop: session.shop,
-    status: updatedStatus,
-    email: session.onlineAccessInfo?.associated_user?.email,
-    url:dashboardLink
+    status,
+    email,
+    url: dashboardLink,
   };
 }
 
