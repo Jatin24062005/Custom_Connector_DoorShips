@@ -6,7 +6,6 @@ import { Redirect } from "@shopify/app-bridge/actions";
 import {
   getDashboardLink,
   getStoreStatus,
-  installStore,
   linkStore,
 } from "../services/doorships.server";
 
