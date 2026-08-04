@@ -6,39 +6,36 @@ import { Redirect } from "@shopify/app-bridge/actions";
 import {
   getDashboardLink,
   getStoreStatus,
+  installStore,
   linkStore,
 } from "../services/doorships.server";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  let status = { linked: false };
-  let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
+  // Register store if not already present
+  await installStore(session.shop, session.accessToken);
 
-  try {
-    status = await getStoreStatus(session.shop);
+  const status = await getStoreStatus(session.shop);
 
-    if (!status.linked && session.onlineAccessInfo?.associated_user?.email) {
-      await linkStore(
-        session.shop,
-        session.onlineAccessInfo.associated_user.email,
-      );
-      status = await getStoreStatus(session.shop);
-    }
-
-    if (status.linked) {
-      dashboardLink = await getDashboardLink(session.shop);
-    }
-  } catch (err) {
-    console.error("DoorShips backend call failed in app._index loader:", err);
-    // fall through with status.linked = false — page still renders
+  if (!status.linked && session.onlineAccessInfo?.associated_user?.email) {
+    await linkStore(
+      session.shop,
+      session.onlineAccessInfo.associated_user.email,
+    );
   }
 
+  const updatedStatus = await getStoreStatus(session.shop);
+    let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
+
+  if (updatedStatus.linked) {
+    dashboardLink = await getDashboardLink(session.shop);
+  }
   return {
     shop: session.shop,
-    status,
+    status: updatedStatus,
     email: session.onlineAccessInfo?.associated_user?.email,
-    url: dashboardLink,
+    url:dashboardLink
   };
 }
 
