@@ -2,7 +2,7 @@
 
 client_id = "ca1775e274303d4d175d16057fd635d6"
 name = "Doorships.in"
-application_url = "https://shopfiy-connector-door-ships.vercel.app"
+application_url = "https://shopfiy-connector-door-ships.vercel.app/"
 embedded = true
 
 [build]
@@ -12,36 +12,32 @@ automatically_update_urls_on_dev = true
 api_version = "2026-10"
 
   [[webhooks.subscriptions]]
-  uri = "/webhooks/orders/create"
-  topics = [ "orders/create" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/orders_cancelled"
-  topics = [ "orders/cancelled" ]
+  uri = "/webhooks/orders/updated"
+  topics = [ "orders/updated" ]
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/uninstalled"
   topics = [ "app/uninstalled" ]
 
   [[webhooks.subscriptions]]
+  uri = "/webhooks/orders/create"
+  topics = [ "orders/create" ]
+  
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/webhooks/customers/data_request"
+  
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/webhooks/customers/redact"
+  
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/webhooks/shop/redact"
+
+  [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
   topics = [ "app/scopes_update" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/app_uninstalled"
-  topics = [ "app/uninstalled" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/fulfillments_create"
-  topics = [ "fulfillments/create" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/fulfillments_update"
-  topics = [ "fulfillments/update" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/orders/updated"
-  topics = [ "orders/updated" ]
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -50,7 +46,7 @@ scopes = "read_assigned_fulfillment_orders,read_fulfillments,read_inventory,read
 [auth]
 redirect_urls = [
   "https://shopfiy-connector-door-ships.vercel.app/auth/callback",
-  "https://shopfiy-connector-door-ships.vercel.app/auth/shopify/callback"
+  "https://shopfiy-connector-door-ships.vercel.app/auth/callback/online"
 ]
 
 [product.metafields.app.demo_info]
