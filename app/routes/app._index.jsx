@@ -1,8 +1,6 @@
 import { Form, useLoaderData, useNavigation } from "react-router";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { Redirect } from "@shopify/app-bridge/actions";
 import {
   getDashboardLink,
   getStoreStatus,
@@ -14,11 +12,13 @@ export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
   let status = { linked: false };
-  let email = session.onlineAccessInfo?.associated_user?.email ?? null;
-  let dashboardLink = process.env.DASHBOARD_URL || "https://doorships.in/";
+  const email =
+    session.onlineAccessInfo?.associated_user?.email ?? "";
+
+  let dashboardLink =
+    process.env.DASHBOARD_URL || "https://doorships.in/";
 
   try {
-    // Fire-and-forget registration; never throw to the loader
     await installStore(session.shop, session.accessToken);
   } catch (e) {
     console.error("installStore failed", e);
@@ -27,17 +27,14 @@ export async function loader({ request }) {
   try {
     status = await getStoreStatus(session.shop);
 
-    if (!status.linked && email) {
-      await linkStore(session.shop, email);
-      status = await getStoreStatus(session.shop);
-    }
-
     if (status.linked) {
       dashboardLink = await getDashboardLink(session.shop);
     }
   } catch (e) {
-    console.error("status/linkStore/getDashboardLink failed", e);
-    // fall back to unlinked state, but still render the page
+    console.error(
+      "status/getDashboardLink failed",
+      e
+    );
   }
 
   return {
@@ -52,65 +49,80 @@ export async function action({ request }) {
   const { session } = await authenticate.admin(request);
 
   const formData = await request.formData();
-
   const email = formData.get("email");
 
-  await linkStore(session.shop, email);
+  if (!email || typeof email !== "string") {
+    return {
+      success: false,
+      error: "Please enter a valid email address.",
+    };
+  }
 
-  return { success: true };
+  try {
+    await linkStore(session.shop, email.trim());
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Failed to link DoorShips account:", error);
+
+    return {
+      success: false,
+      error: "Failed to link DoorShips account.",
+    };
+  }
 }
 
 export default function Index() {
-  const { shop, status, email,url } = useLoaderData();
+  const { shop, status, email, url } = useLoaderData();
   const navigation = useNavigation();
 
   const loading = navigation.state === "submitting";
 
-  const HandleOpenDashboard = async () => {
-    
-    window.open(url,
-      "_blank",
-      "noopener,noreferrer",
-    );
-}
+  const HandleOpenDashboard = () => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <s-page heading="DoorShips Connector">
       <s-section>
         <s-card>
           <s-stack gap="base">
-            <s-text variant="headingLg">Shopify Store</s-text>
+
+            <s-text variant="headingLg">
+              Shopify Store
+            </s-text>
 
             <s-paragraph>
               <s-text>Store: </s-text>
-              <s-text emphasis="bold">{shop}</s-text>
+              <s-text emphasis="bold">
+                {shop}
+              </s-text>
             </s-paragraph>
 
             <s-paragraph>
               <s-text>Shopify App: </s-text>
-              <s-text emphasis="bold">Installed ✅</s-text>
+              <s-text emphasis="bold">
+                Installed ✅
+              </s-text>
             </s-paragraph>
 
             <s-paragraph>
               <s-text>DoorShips Connection: </s-text>
               <s-text emphasis="bold">
-                {status.linked ? "Connected ✅" : "Not Connected"}
+                {status.linked
+                  ? "Connected ✅"
+                  : "Not Connected"}
               </s-text>
             </s-paragraph>
 
             {status.linked ? (
               <>
-                {/* <s-paragraph>
-                  <s-text>Company: </s-text>
-                  <s-text emphasis="bold">
-                    {status.user.companyName}
-                  </s-text>
-                </s-paragraph> */}
-
-                <s-paragraph>
-                  <s-text>Email: </s-text>
-                  <s-text emphasis="bold">{status.user.email}</s-text>
-                </s-paragraph>
+                <s-banner tone="success">
+                  This Shopify store is connected to your
+                  DoorShips account.
+                </s-banner>
 
                 <s-button
                   tone="primary"
@@ -121,27 +133,41 @@ export default function Index() {
               </>
             ) : (
               <>
-                <s-banner tone="info">
-                  This Shopify store is not linked with a DoorShips account.
+                <s-banner tone="warning">
+                  This Shopify store is not linked with a
+                  DoorShips account.
                 </s-banner>
 
                 <Form method="post">
-                  <input type="hidden" name="email" value={email || ""} />
+                  <s-stack gap="base">
 
-                  <s-paragraph>
-                    Your Shopify account email will be used:
-                  </s-paragraph>
+                    <s-paragraph>
+                      Enter the email address associated with
+                      your DoorShips account.
+                    </s-paragraph>
 
-                  <s-text emphasis="bold">{email}</s-text>
+                    <s-text-field
+                      name="email"
+                      label="DoorShips Account Email"
+                      type="email"
+                      value={email}
+                      placeholder="Enter your DoorShips email"
+                      required
+                    />
 
-                  <br />
+                    <s-button
+                      tone="primary"
+                      submit
+                      loading={loading}
+                    >
+                      Link DoorShips Account
+                    </s-button>
 
-                  <s-button tone="primary" submit loading={loading}>
-                    Link DoorShips Account
-                  </s-button>
+                  </s-stack>
                 </Form>
               </>
             )}
+
           </s-stack>
         </s-card>
       </s-section>
@@ -149,4 +175,5 @@ export default function Index() {
   );
 }
 
-export const headers = (headersArgs) => boundary.headers(headersArgs);
+export const headers = (headersArgs) =>
+  boundary.headers(headersArgs);
