@@ -45,12 +45,11 @@ export async function linkStore(shop, email) {
 
     console.log("Response:", res);
     console.log("Response Data:", res.data);
-    const linkedUser = res.data.store.user
 
-    return linkedUser
+    return res.data
     ;
   } catch (error) {
-    console.error(error.response?.data || error.message);
+    console.error(error.response?.data?.message || error.message);
     throw error;
   }
 }
