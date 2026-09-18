@@ -1,20 +1,13 @@
-# DoorShips - Custom Distribution App
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "fabb2f0a88a3b1e45aece2b396e4a4df"
-
+application_url = "https://example.com"
+embedded = true
 name = "DoorShips"
 
-# CHANGE THIS to your actual custom deployment URL
-application_url = "https://doorships-custom.vercel.app"
-
-embedded = true
-
-[build]
-automatically_update_urls_on_dev = false
-
 [access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_analytics,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders,write_draft_orders,read_draft_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,write_order_edits,read_order_edits,read_orders,write_orders,read_third_party_fulfillment_orders,write_third_party_fulfillment_orders"
-
 optional_scopes = [
   "read_channels",
   "write_channels",
@@ -23,14 +16,10 @@ optional_scopes = [
   "read_custom_fulfillment_services",
   "write_custom_fulfillment_services"
 ]
-
 use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [
-  "https://doorships-custom.vercel.app/auth/callback",
-  "https://doorships-custom.vercel.app/auth/callback/online"
-]
+redirect_urls = [ ]
 
 [app_proxy]
 url = "https://doorships-service-267214421211.asia-south1.run.app/api"
@@ -40,22 +29,5 @@ prefix = "apps"
 [webhooks]
 api_version = "2026-07"
 
-[[webhooks.subscriptions]]
-uri = "/webhooks/orders/updated"
-topics = ["orders/updated"]
-
-[[webhooks.subscriptions]]
-uri = "/webhooks/app/uninstalled"
-topics = ["app/uninstalled"]
-
-[[webhooks.subscriptions]]
-uri = "/webhooks/orders/create"
-topics = ["orders/create"]
-
-[[webhooks.subscriptions]]
-compliance_topics = [
-  "customers/data_request",
-  "customers/redact",
-  "shop/redact"
-]
-uri = "/webhooks"
+[build]
+automatically_update_urls_on_dev = true
