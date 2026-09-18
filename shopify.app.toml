@@ -5,7 +5,7 @@ client_id = "fabb2f0a88a3b1e45aece2b396e4a4df"
 name = "DoorShips"
 
 # CHANGE THIS to your actual custom deployment URL
-application_url = "https://doorships-custom.vercel.app"
+application_url = "https://custom-connector-door-ships.vercel.app"
 
 embedded = true
 
